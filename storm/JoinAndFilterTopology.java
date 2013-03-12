@@ -1,8 +1,8 @@
 
-
 import bolt.JoinBolt;
 import bolt.PrinterBolt;
 import bolt.FilterBolt;
+import bolt.CountBolt;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.testing.FeederSpout;
@@ -32,17 +32,18 @@ public class JoinAndFilterTopology {
         // Add a filter bolt to your topology to filter out any message that has retweets less than 4 or likes less than 8. 
         builder.setBolt("filter", new FilterBolt()).shuffleGrouping("join");
         // Add another bolt to keep count of total likes and retweets per message
-        
+        builder.setBolt("counter", new CountBolt()).globalGrouping("filter");
      
         // PrinterBolt finally prints out the end result to System.out
         // This assumes that the bolt that feeds into it was named "filter",
         // change as per your topology.
-        builder.setBolt("print", new PrinterBolt()).shuffleGrouping("filter");
+        builder.setBolt("print", new PrinterBolt()).shuffleGrouping("counter");
+        ///////builder.setBolt("print2", new PrinterBolt()).shuffleGrouping("filter");
         
      
         
         Config conf = new Config();
-        conf.setDebug(true);
+        conf.setDebug(false);   //////   <----- change
         
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology("join-and-filter-example", conf, builder.createTopology());
@@ -51,7 +52,7 @@ public class JoinAndFilterTopology {
         Random generator = new Random();
         
         String geo_location = new String();
-        for(int i=0; i < 30; i++) {    ///  This should be 10000000, I changed it for testing
+        for(int i=0; i < 10; i++) {    ///  This should be 10000000, I changed it for testing
             twitterSpout.feed(new Values(i, generator.nextInt(10 * ((i%3)+1))));
             if(i % 3 == 0) {
                 geo_location = "Asia/Pacific";
