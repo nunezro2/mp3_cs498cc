@@ -16,16 +16,9 @@ public class PrinterBolt extends BaseBasicBolt {
 	
     @Override
     public void execute(Tuple tuple, BasicOutputCollector collector) {
-    	// THIS PART CAN BE REMOVED... IT'S JUST A GUIDE
-    	String output = "source " + tuple.getSourceComponent() + ", ";
-    	output += "noFields " + tuple.size() + ", ";
-    	output += "fieldsName " + tuple.getFields() + ", ";
-    	output += "getSourceGlobalStreamid " + tuple.getSourceGlobalStreamid() + ", ";
-    	output += "id " + tuple.getSourceStreamId() + ", ";
-    	output += " " + tuple.getValues();
-    	
-    	//collector.emit(new Values("OUTPUT TUPLE: " + tuple))
-    	System.out.println("OUTPUT TUPLE: " + tuple.getValues());
+
+    	if( tuple.contains("percentages")  &&  !tuple.getStringByField("percentages").isEmpty())
+    		System.out.println(tuple.getStringByField("percentages"));
     }
 
     @Override

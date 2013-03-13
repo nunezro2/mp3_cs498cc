@@ -26,24 +26,18 @@ public class JoinAndFilterTopology {
 
         // you need to extend this topology in order to Join and Filter the two streams
         
-        builder.setBolt("join", new JoinBolt(new Fields("id", "retweets", "likes", "geo_location")))
+        builder.setBolt("join", new JoinBolt(new Fields("id", "retweets", "likes", "geo_location")), 8)
                 .fieldsGrouping("facebook", new Fields("id"))
                 .fieldsGrouping("twitter", new Fields("id"));
         // Add a filter bolt to your topology to filter out any message that has retweets less than 4 or likes less than 8. 
-        builder.setBolt("filter", new FilterBolt()).shuffleGrouping("join");
+        builder.setBolt("filter", new FilterBolt(), 8).shuffleGrouping("join");
         // Add another bolt to keep count of total likes and retweets per message
         builder.setBolt("counter", new CountBolt()).globalGrouping("filter");
-     
         // PrinterBolt finally prints out the end result to System.out
-        // This assumes that the bolt that feeds into it was named "filter",
-        // change as per your topology.
         builder.setBolt("print", new PrinterBolt()).shuffleGrouping("counter");
-        ///////builder.setBolt("print2", new PrinterBolt()).shuffleGrouping("filter");
-        
-     
         
         Config conf = new Config();
-        conf.setDebug(false);   //////   <----- change
+        conf.setDebug(false);   //////   <----- changed to false
         
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology("join-and-filter-example", conf, builder.createTopology());
@@ -52,7 +46,7 @@ public class JoinAndFilterTopology {
         Random generator = new Random();
         
         String geo_location = new String();
-        for(int i=0; i < 10; i++) {    ///  This should be 10000000, I changed it for testing
+        for(int i=0; i < 10000000; i++) {    ///  This should be 10000000, I changed it for testing
             twitterSpout.feed(new Values(i, generator.nextInt(10 * ((i%3)+1))));
             if(i % 3 == 0) {
                 geo_location = "Asia/Pacific";
@@ -66,7 +60,7 @@ public class JoinAndFilterTopology {
             facebookSpout.feed(new Values(i, generator.nextInt(25 * ((i%3)+1)), geo_location));
         }
                 
-        Utils.sleep(7000);
+        Utils.sleep(60000);
         cluster.shutdown();
     }
 }
